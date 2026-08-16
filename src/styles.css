@@ -1,0 +1,96 @@
+/*
+  Beweging die bij de componenten uit dit package hoort.
+  Importeer één keer in je root layout:
+
+      import "@brickbybrick-nl/ui/styles.css";
+
+  Alle kleuren en het watermerk-font komen uit variabelen met een fallback,
+  zodat het pakket uit zichzelf werkt en een site hem toch kan overschrijven.
+  Zet de variabelen op :root in je eigen globals.css.
+*/
+
+/* ---------- Reveal: één keer inschuiven bij in beeld komen ---------- */
+.bbb-reveal {
+  opacity: 0;
+  transform: translateY(var(--bbb-reveal-afstand, 30px));
+  transition:
+    opacity var(--bbb-reveal-duur, 0.9s) cubic-bezier(0.22, 1, 0.36, 1),
+    transform var(--bbb-reveal-duur, 0.9s) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bbb-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- Intro: preloader → boog-mask → inhoud ---------- */
+.bbb-intro-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: var(--bbb-intro-bg, var(--bg, #ffffff));
+  transition:
+    opacity 0.7s ease 0.05s,
+    visibility 0.7s;
+}
+
+.bbb-intro-preloader.bbb-intro-opening,
+.bbb-intro-preloader.bbb-intro-done {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.bbb-intro-frame {
+  position: absolute;
+  inset: clamp(10px, 1.6vw, 22px);
+  border: 1px solid var(--bbb-intro-lijn, var(--line, rgb(0 0 0 / 0.12)));
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+.bbb-intro-watermark {
+  font-family: var(--bbb-intro-font, inherit);
+  font-size: clamp(3rem, 13vw, 11rem);
+  line-height: 1;
+  color: var(--bbb-intro-fg, var(--hero-fg, currentColor));
+  opacity: 0.15;
+  user-select: none;
+  text-align: center;
+  padding: 0 6vw;
+}
+
+.bbb-intro-stage {
+  clip-path: inset(0 0 0 0 round 0);
+  transition: clip-path 1.2s cubic-bezier(0.66, 0, 0.34, 1);
+  will-change: clip-path;
+}
+
+/* Kleine boog onderaan-midden vóór de reveal */
+.bbb-intro-stage.bbb-intro-load {
+  clip-path: inset(44% 44% 0% 44% round 180px 180px 0 0);
+}
+
+.bbb-intro-stage.bbb-intro-done {
+  clip-path: none;
+}
+
+/* ---------- Bewegingsvoorkeur ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .bbb-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .bbb-intro-stage {
+    clip-path: none !important;
+    transition: none;
+  }
+
+  .bbb-intro-preloader {
+    display: none;
+  }
+}

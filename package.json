@@ -1,0 +1,23 @@
+{
+  "name": "@brickbybrick-nl/ui",
+  "version": "1.0.0",
+  "description": "Gedeelde beweging en componenten voor BrickByBrick-websites",
+  "type": "module",
+  "sideEffects": ["*.css"],
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles.css"
+  },
+  "files": ["src"],
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.2",
+    "typescript": "^5.7.2"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}
