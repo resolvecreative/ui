@@ -1,6 +1,6 @@
 {
   "name": "@brickbybrick-nl/ui",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "Gedeelde beweging en componenten voor BrickByBrick-websites",
   "type": "module",
   "sideEffects": ["*.css"],
