@@ -49,6 +49,41 @@ import { SnapScroll } from "@brickbybrick-nl/ui";
 Op touch en bij `prefers-reduced-motion` doet het component niets. Regel de
 uitlijning daar met CSS `scroll-snap-type` in je eigen stylesheet.
 
+### Stage — Transitie 101, zware variant
+
+Voor pagina's waar de panelen op elkaar gepind liggen in plaats van onder elkaar
+te staan. Eén tall stage van `stops` × 100vh met een sticky pin; de panelen
+schrijven per frame hun eigen opacity en transform.
+
+```tsx
+import { Stage, useStageFrame, venster } from "@brickbybrick-nl/ui";
+
+<Stage stops={7} snelleStops={[1, 5]}>
+  <Hero />
+  <OpbouwPaneel />
+</Stage>;
+
+// in een paneel — schrijf rechtstreeks naar de DOM, geen React-state:
+useStageFrame((viz) => {
+  el.style.opacity = String(venster(viz, 0.3, 0.85));
+});
+```
+
+`snelleStops` is het inclusieve bereik waarbinnen een stap als "binnen dezelfde
+sectie" telt: kortere tween (460ms tegen 950ms), kortere settle, en een vers
+gebaar mag een lopende tween vanaf 40% overnemen. Bedoeld voor reeksen die je
+achter elkaar doorloopt zonder dat het zwaar aanvoelt.
+
+Verder beschikbaar: `useStageStatisch()` (true bij `prefers-reduced-motion`),
+`stageSpringNaar(stop)` voor navigatie buiten de stage om — hash-ankers werken
+niet onder een gehijackte scroll — en `zetStageSlot(true)` om de hijack helemaal
+uit te zetten zolang er een dialoog overheen ligt. Een element met
+`data-stage-scroller` houdt de wheel zolang het zelf nog kan scrollen.
+
+**SnapScroll of Stage?** SnapScroll snapt hele secties in de gewone
+documentstroom en laat de pagina daarna vrij lopen. Stage pint panelen op elkaar
+en kent twee tempo's. Staan je secties gewoon onder elkaar, neem dan SnapScroll.
+
 ### Reveal
 
 ```tsx
