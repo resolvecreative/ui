@@ -1,7 +1,7 @@
 {
-  "name": "@brickbybrick-nl/ui",
-  "version": "1.1.1",
-  "description": "Gedeelde beweging en componenten voor BrickByBrick-websites",
+  "name": "@resolvecreative/ui",
+  "version": "1.1.2",
+  "description": "Gedeelde beweging en componenten voor Resolve Creative-websites",
   "type": "module",
   "sideEffects": ["*.css"],
   "exports": {

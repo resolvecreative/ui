@@ -1,6 +1,6 @@
-# @brickbybrick-nl/ui
+# @resolvecreative/ui
 
-Gedeelde beweging voor BrickByBrick-websites: Transitie 101, scroll-reveal, de
+Gedeelde beweging voor Resolve Creative-websites: Transitie 101, scroll-reveal, de
 page-load intro en de timing die daar onder ligt. Eén bron, zodat een wijziging
 in het ritme niet in elke site apart hoeft.
 
@@ -14,7 +14,7 @@ Vastzetten op een tag, nooit op een branch — anders verandert een site zonder
 dat je hem hebt aangeraakt.
 
 ```bash
-pnpm add "@brickbybrick-nl/ui@github:brickbybrick-nl/ui#v1.0.0"
+pnpm add "@resolvecreative/ui@github:resolvecreative/ui#v1.1.2"
 ```
 
 Het pakket wordt als TypeScript geleverd, dus Next moet hem meenemen in de
@@ -22,14 +22,14 @@ transpilatie. In `next.config.ts`:
 
 ```ts
 const nextConfig = {
-  transpilePackages: ["@brickbybrick-nl/ui"],
+  transpilePackages: ["@resolvecreative/ui"],
 };
 ```
 
 En één keer de stylesheet in je root layout:
 
 ```ts
-import "@brickbybrick-nl/ui/styles.css";
+import "@resolvecreative/ui/styles.css";
 ```
 
 ## Gebruik
@@ -41,7 +41,7 @@ veeg niet drie secties doorschiet. Geef het aantal secties dat op volle
 viewporthoogte snapt; daarna loopt de pagina over in vrije scroll.
 
 ```tsx
-import { SnapScroll } from "@brickbybrick-nl/ui";
+import { SnapScroll } from "@resolvecreative/ui";
 
 <SnapScroll sections={5} />;
 ```
@@ -56,7 +56,7 @@ te staan. Eén tall stage van `stops` × 100vh met een sticky pin; de panelen
 schrijven per frame hun eigen opacity en transform.
 
 ```tsx
-import { Stage, useStageFrame, venster } from "@brickbybrick-nl/ui";
+import { Stage, useStageFrame, venster } from "@resolvecreative/ui";
 
 <Stage stops={7} snelleStops={[1, 5]}>
   <Hero />
@@ -87,7 +87,7 @@ en kent twee tempo's. Staan je secties gewoon onder elkaar, neem dan SnapScroll.
 ### Reveal
 
 ```tsx
-import { Reveal } from "@brickbybrick-nl/ui";
+import { Reveal } from "@resolvecreative/ui";
 
 <Reveal delay={120}>
   <h2>Komt binnen zodra hij in beeld staat</h2>
@@ -100,7 +100,7 @@ Preloader met watermerk, dan een boog die opengaat. De sectie eronder leest de
 fase en start zijn eigen entrance op het juiste moment.
 
 ```tsx
-import { IntroReveal, useIntroPhase } from "@brickbybrick-nl/ui";
+import { IntroReveal, useIntroPhase } from "@resolvecreative/ui";
 
 <IntroReveal brand="Eiland de Wild">
   <Hero />
@@ -113,7 +113,7 @@ const phase = useIntroPhase(); // "load" | "opening" | "done"
 ### Anker-scroll
 
 ```ts
-import { scrollNaar, scrollNaarElement } from "@brickbybrick-nl/ui";
+import { scrollNaar, scrollNaarElement } from "@resolvecreative/ui";
 
 scrollNaarElement(document.querySelector("#contact")!);
 ```

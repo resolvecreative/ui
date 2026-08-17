@@ -2,7 +2,7 @@
   Beweging die bij de componenten uit dit package hoort.
   Importeer één keer in je root layout:
 
-      import "@brickbybrick-nl/ui/styles.css";
+      import "@resolvecreative/ui/styles.css";
 
   Alle kleuren en het watermerk-font komen uit variabelen met een fallback,
   zodat het pakket uit zichzelf werkt en een site hem toch kan overschrijven.
