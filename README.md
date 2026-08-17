@@ -4,7 +4,7 @@ Gedeelde beweging voor Resolve Creative-websites: Transitie 101, scroll-reveal, 
 page-load intro en de timing die daar onder ligt. Eén bron, zodat een wijziging
 in het ritme niet in elke site apart hoeft.
 
-Wat hier **niet** in hoort: merkonderdelen van BrickByBrick zelf (BrickMark,
+Wat hier **niet** in hoort: merkonderdelen van Resolve Creative zelf (BrickMark,
 MorphLogo) en alles wat aan één site vastzit (navigatie, prijskaarten, hero's).
 Dit pakket is de beweging, niet de huisstijl.
 
