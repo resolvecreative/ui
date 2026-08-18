@@ -24,8 +24,13 @@ jobs:
           node-version: 20
           registry-url: https://npm.pkg.github.com
           scope: '@resolvecreative'
-      # Dezelfde versie twee keer publiceren geeft een 409; dat is geen storing
-      # maar een herhaalde draai, dus die laten we de workflow niet slopen.
-      - run: npm publish || echo 'Deze versie stond er al.'
+      # Alleen een al bestaande versie mag doorlopen — elke andere fout hoort de
+      # workflow rood te maken. Een kale `|| echo` verbergt ook een mislukte
+      # publicatie, en dan denk je dat het pakket er staat terwijl dat niet zo is.
+      - run: |
+          uitvoer=$(npm publish 2>&1) && { echo "$uitvoer"; exit 0; }
+          echo "$uitvoer"
+          echo "$uitvoer" | grep -q 'EPUBLISHCONFLICT\|already exists' || exit 1
+          echo 'Deze versie stond er al; niets te doen.'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
