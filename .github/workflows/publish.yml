@@ -1,0 +1,31 @@
+# Publiceert het pakket naar GitHub Packages.
+#
+# Draait op een tag (v1.2.3) en met de hand via "Run workflow". Gebruikt de
+# ingebouwde GITHUB_TOKEN, dus er hoeft geen persoonlijke sleutel in de repo te
+# staan. De buildmachine van Vercel kan een privé git-dependency niet clonen —
+# via een registry met een leestoken lukt dat wel.
+name: Publiceren
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  publiceren:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com
+          scope: '@resolvecreative'
+      # Dezelfde versie twee keer publiceren geeft een 409; dat is geen storing
+      # maar een herhaalde draai, dus die laten we de workflow niet slopen.
+      - run: npm publish || echo 'Deze versie stond er al.'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

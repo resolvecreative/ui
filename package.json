@@ -3,12 +3,16 @@
   "version": "1.1.2",
   "description": "Gedeelde beweging en componenten voor Resolve Creative-websites",
   "type": "module",
-  "sideEffects": ["*.css"],
+  "sideEffects": [
+    "*.css"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./styles.css": "./src/styles.css"
   },
-  "files": ["src"],
+  "files": [
+    "src"
+  ],
   "peerDependencies": {
     "react": ">=18",
     "react-dom": ">=18"
@@ -19,5 +23,12 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/resolvecreative/ui.git"
   }
 }
