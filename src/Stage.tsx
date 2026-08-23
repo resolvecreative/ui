@@ -386,9 +386,23 @@ export default function Stage({
       }
     };
 
+    /*
+      Opnieuw uitlijnen na een resize hoort, maar **niet als de bezoeker onder de
+      stage staat**. Een telefoon vuurt `resize` zodra zijn adresbalk in- of
+      uitklapt, en dat gebeurt tijdens het scrollen zelf; staat er een sectie ná de
+      stops in de gewone stroom, dan trok `spring(doelStop)` de bezoeker daaruit
+      terug de stage in — gemeten op abc-vloeren: vanuit de FAQ terug naar
+      `scrollY 0`.
+
+      Binnen de stage is uitlijnen juist onzichtbaar én nodig: de pin plakt aan de
+      bovenrand, dus het beeld verschuift niet, terwijl `viz` wél weer precies op
+      de stop uitkomt in plaats van er half tussenin te blijven hangen.
+    */
     const opResize = () => {
       if (window.innerHeight < 1) return;
       zetHoogte();
+      const onderDeStage = window.scrollY > top() + (stops - 1) * vh() + 4;
+      if (!inStage() || onderDeStage) return;
       spring(doelStop);
     };
 
