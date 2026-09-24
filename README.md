@@ -14,7 +14,7 @@ Vastzetten op een tag, nooit op een branch — anders verandert een site zonder
 dat je hem hebt aangeraakt.
 
 ```bash
-pnpm add "@resolvecreative/ui@github:resolvecreative/ui#v1.2.1"
+pnpm add "@resolvecreative/ui@github:resolvecreative/ui#v1.2.2"
 ```
 
 Het pakket wordt als TypeScript geleverd, dus Next moet hem meenemen in de
@@ -101,7 +101,9 @@ als ze er bovenin uit gaan, in beide richtingen. Telefoon én desktop. Het
 scrollwerk doet CSS zelf (`animation-timeline: view()`); browsers zonder
 ondersteuning krijgen een JS-motor met dezelfde waarden. **iOS krijgt altijd de
 JS-motor**: Safari op iPhone/iPad rekent de CSS-animatie wel uit maar tekent hem
-niet altijd (blokken staan dan vol wit). Test een site daarom altijd óók op een
+niet altijd (blokken staan dan vol wit). De motor dempt: waarden glijden in
+~0,5 s naar de scrollstand (`DEMPING_MS` = 140), zodat een te laat frame geen
+schokje geeft. In rust staat de lus stil. Test een site daarom altijd óók op een
 echte iPhone — Playwright-WebKit op de Mac laat dit niet zien.
 
 Zet `<ScrollFocus />` op **elke pagina** (niet in de layout: bij client-navigatie

@@ -32,6 +32,12 @@ type Blok = {
   van: number;
   tot: number;
   staart: boolean;
+  /* JS-motor: waar de waarden heen moeten, en waar ze nu zijn (gedempt) */
+  doelIn: number;
+  doelUit: number;
+  nuIn: number;
+  nuUit: number;
+  klaar: boolean;
   in_: string;
   uit: string;
 };
@@ -83,6 +89,12 @@ function isIOS() {
   return /iP(hone|od|ad)/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
 }
 
+/** Demping van de JS-motor: tijdconstante in ms. De waarden glijden naar de
+    scrollstand in plaats van erop vast te springen, zodat een te laat
+    geleverd frame (iOS, zware pagina) geen schokje geeft. Hoger = zachter,
+    maar loopt meer achter de vinger aan. */
+const DEMPING_MS = 140;
+
 function klem(t: number) {
   return Math.min(Math.max(t, 0), 1);
 }
@@ -104,33 +116,71 @@ export default function ScrollFocus() {
 
     const blokken: Blok[] = Array.from(
       document.querySelectorAll<HTMLElement>("[data-scrollfocus]"),
-      (el) => ({ el, boven: 0, hoogte: 0, van: 0, tot: 1, staart: false, in_: "", uit: "" }),
+      (el) => ({
+        el,
+        boven: 0,
+        hoogte: 0,
+        van: 0,
+        tot: 1,
+        staart: false,
+        doelIn: 1,
+        doelUit: 1,
+        nuIn: 1,
+        nuUit: 1,
+        klaar: false,
+        in_: "",
+        uit: "",
+      }),
     );
     const inBeeld = new Set<Blok>();
     const plafonds = Array.from(
       document.querySelectorAll<HTMLElement>("[data-scrollfocus-plafond]"),
     );
     let zonePlafond = 1;
-    let plafondWaarde = "";
     let zoneUit = 1;
-    let gepland = false;
+    /* plafond: doel, gedempte stand, laatst geschreven waarde */
+    let plafondDoel = 1;
+    let plafondNu = -1;
+    let plafondGeschreven = "";
+    const bewegend = new Set<Blok>();
 
+    const schrijf = (b: Blok) => {
+      const in_ = b.nuIn.toFixed(3);
+      const uit = b.nuUit.toFixed(3);
+      if (in_ !== b.in_) b.el.style.setProperty("--sf-in", (b.in_ = in_));
+      if (uit !== b.uit) b.el.style.setProperty("--sf-uit", (b.uit = uit));
+    };
+
+    /* Rekent uit waar een blok heen moet. De eerste keer springt hij er
+       meteen heen (bij het laden hoort niets te glijden), daarna dempt de
+       lus hem ernaartoe. */
     const zet = (b: Blok) => {
       const vh = window.innerHeight;
       const top = b.boven - window.scrollY;
       /* De uit-animatie loopt in CSS van 1 naar 0 met de curve over zijn
          eigen voortgang; vandaar hier 1 - curve(1 - x) en niet curve(x). */
-      const in_ = bezier(klem((vh - top - b.van) / (b.tot - b.van))).toFixed(3);
-      const uit = (1 - bezier(1 - klem((top + b.hoogte) / zoneUit))).toFixed(3);
-      if (in_ !== b.in_) b.el.style.setProperty("--sf-in", (b.in_ = in_));
-      if (uit !== b.uit) b.el.style.setProperty("--sf-uit", (b.uit = uit));
+      b.doelIn = bezier(klem((vh - top - b.van) / (b.tot - b.van)));
+      b.doelUit = 1 - bezier(1 - klem((top + b.hoogte) / zoneUit));
+      if (!b.klaar) {
+        b.nuIn = b.doelIn;
+        b.nuUit = b.doelUit;
+        b.klaar = true;
+        schrijf(b);
+      } else if (b.doelIn !== b.nuIn || b.doelUit !== b.nuUit) {
+        bewegend.add(b);
+      }
     };
 
     /* Plafondregel: dekking volgt de scrollpositie, niet de plek op het scherm */
     const zetPlafond = () => {
-      const w = bezier(klem(window.scrollY / zonePlafond)).toFixed(3);
-      if (w === plafondWaarde) return;
-      plafondWaarde = w;
+      plafondDoel = bezier(klem(window.scrollY / zonePlafond));
+      if (plafondNu < 0) plafondNu = plafondDoel;
+    };
+
+    const schrijfPlafond = () => {
+      const w = plafondNu.toFixed(3);
+      if (w === plafondGeschreven) return;
+      plafondGeschreven = w;
       for (const el of plafonds) el.style.setProperty("--sf-plafond", w);
     };
 
@@ -171,7 +221,60 @@ export default function ScrollFocus() {
         b.staart = staart;
         if (!native) zet(b);
       }
-      if (!native) zetPlafond();
+      if (!native) {
+        zetPlafond();
+        schrijfPlafond();
+        start();
+      }
+    };
+
+    /* De lus draait alleen zolang er gescrold wordt of iets nog naglijdt;
+       in rust staat hij stil en kost hij niets. */
+    let lusId = 0;
+    let vorige = 0;
+    let gescrold = false;
+
+    const lus = (t: number) => {
+      const dt = vorige ? Math.min(t - vorige, 64) : 16;
+      vorige = t;
+      const k = 1 - Math.exp(-dt / DEMPING_MS);
+
+      if (gescrold) {
+        gescrold = false;
+        inBeeld.forEach(zet);
+        zetPlafond();
+      }
+
+      for (const b of bewegend) {
+        b.nuIn += (b.doelIn - b.nuIn) * k;
+        b.nuUit += (b.doelUit - b.nuUit) * k;
+        if (Math.abs(b.doelIn - b.nuIn) < 0.001 && Math.abs(b.doelUit - b.nuUit) < 0.001) {
+          b.nuIn = b.doelIn;
+          b.nuUit = b.doelUit;
+          bewegend.delete(b);
+        }
+        schrijf(b);
+      }
+
+      const plafondRust = Math.abs(plafondDoel - plafondNu) < 0.001;
+      plafondNu = plafondRust ? plafondDoel : plafondNu + (plafondDoel - plafondNu) * k;
+      schrijfPlafond();
+
+      if (bewegend.size || !plafondRust || gescrold) {
+        lusId = requestAnimationFrame(lus);
+      } else {
+        lusId = 0;
+        vorige = 0;
+      }
+    };
+
+    function start() {
+      if (!lusId) lusId = requestAnimationFrame(lus);
+    }
+
+    const opScroll = () => {
+      gescrold = true;
+      start();
     };
 
     // Hoogtes veranderen door fonts, het formulier, een draaiend scherm;
@@ -180,18 +283,6 @@ export default function ScrollFocus() {
     ro.observe(document.body);
     window.addEventListener("resize", meet);
     meet();
-
-    const frame = () => {
-      gepland = false;
-      inBeeld.forEach(zet);
-      zetPlafond();
-    };
-
-    const opScroll = () => {
-      if (gepland) return;
-      gepland = true;
-      requestAnimationFrame(frame);
-    };
 
     let io: IntersectionObserver | null = null;
     if (!native) {
@@ -208,6 +299,7 @@ export default function ScrollFocus() {
                volgende scroll in zijn oude stand blijven hangen. */
             zet(b);
           }
+          start();
         },
         { rootMargin: "10% 0px" },
       );
@@ -218,6 +310,7 @@ export default function ScrollFocus() {
     return () => {
       window.removeEventListener("scroll", opScroll);
       window.removeEventListener("resize", meet);
+      cancelAnimationFrame(lusId);
       io?.disconnect();
       ro.disconnect();
       html.classList.remove("sf-js");
