@@ -143,6 +143,9 @@
    <ScrollFocus /> hoort op elke pagina met Scrollfocus, ook in browsers
    die de rest zelf doen.
 
+   iOS (iPhone/iPad) krijgt altijd de JS-motor: Safari daar rekent de
+   CSS-animatie uit maar tekent hem niet altijd.
+
    Browsers zonder animation-timeline krijgen de JS-motor in
    src/ScrollFocus.tsx (<ScrollFocus /> op elke pagina); die zet html.sf-js en per blok --sf-in en
    --sf-uit (0 tot 1). */

@@ -14,7 +14,8 @@ import { useEffect } from "react";
    kortere in-zone, anders komen ze nooit vol in beeld. Die draait altijd.
 
    Browsers met animation-timeline: view() doen het scrollwerk zelf in CSS,
-   buiten de JS-thread. Voor de rest is dit ook de terugval (o.a. iPhones vóór iOS 26):
+   buiten de JS-thread — behalve iOS, zie hieronder bij "native". Voor de
+   rest is dit ook de terugval (o.a. iPhones vóór iOS 26):
    één scroll-luisteraar met rAF die alleen blokken in beeld bijwerkt. Hij
    rekent niets uit over opmaak: hij zet per blok twee getallen tussen 0 en 1
    (--sf-in en --sf-uit) en de CSS maakt daar dekking en verschuiving van.
@@ -74,6 +75,14 @@ function bezier(x: number) {
 /** Hoeveel pixels vóór de bodem een staartblok al vol staat */
 const STAART_MARGE = 12;
 
+/* iPhone, iPod en iPad. iPadOS doet zich voor als Mac, maar een Mac heeft
+   geen touchscreen. Elke browser op iOS is WebKit, dus dit geldt ook voor
+   Chrome en Firefox daar. */
+function isIOS() {
+  const ua = navigator.userAgent;
+  return /iP(hone|od|ad)/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+}
+
 function klem(t: number) {
   return Math.min(Math.max(t, 0), 1);
 }
@@ -83,8 +92,12 @@ export default function ScrollFocus() {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     /* Met animation-timeline doet CSS het scrollwerk; dan draait hier alleen
-       de staartregel (bij laden en resize), geen scroll-luisteraar. */
-    const native = CSS.supports("animation-timeline: view()");
+       de staartregel (bij laden en resize), geen scroll-luisteraar.
+       Behalve op iOS: daar rekent Safari de animatie wel uit (computed
+       opacity klopt) maar tekent hij hem niet altijd — gemeten op iOS 26,
+       24 sep 2026: blokken bleven vol wit staan. Geen laag-truc hielp
+       (will-change op blok, ouder of sectie); stijl via de motor wel. */
+    const native = CSS.supports("animation-timeline: view()") && !isIOS();
 
     const html = document.documentElement;
     if (!native) html.classList.add("sf-js");

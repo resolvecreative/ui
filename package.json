@@ -1,6 +1,6 @@
 {
   "name": "@resolvecreative/ui",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Gedeelde beweging en componenten voor Resolve Creative-websites",
   "type": "module",
   "sideEffects": [

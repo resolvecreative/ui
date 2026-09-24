@@ -14,7 +14,7 @@ Vastzetten op een tag, nooit op een branch — anders verandert een site zonder
 dat je hem hebt aangeraakt.
 
 ```bash
-pnpm add "@resolvecreative/ui@github:resolvecreative/ui#v1.2.0"
+pnpm add "@resolvecreative/ui@github:resolvecreative/ui#v1.2.1"
 ```
 
 Het pakket wordt als TypeScript geleverd, dus Next moet hem meenemen in de
@@ -99,7 +99,10 @@ import { Reveal } from "@resolvecreative/ui";
 Blokken komen continu op als ze onderin het scherm binnenkomen en gaan weer weg
 als ze er bovenin uit gaan, in beide richtingen. Telefoon én desktop. Het
 scrollwerk doet CSS zelf (`animation-timeline: view()`); browsers zonder
-ondersteuning krijgen een JS-motor met dezelfde waarden.
+ondersteuning krijgen een JS-motor met dezelfde waarden. **iOS krijgt altijd de
+JS-motor**: Safari op iPhone/iPad rekent de CSS-animatie wel uit maar tekent hem
+niet altijd (blokken staan dan vol wit). Test een site daarom altijd óók op een
+echte iPhone — Playwright-WebKit op de Mac laat dit niet zien.
 
 Zet `<ScrollFocus />` op **elke pagina** (niet in de layout: bij client-navigatie
 moet hij opnieuw meten) en markeer de blokken:
@@ -129,14 +132,18 @@ Toepassingsregels:
 - geen `overflow: hidden/auto/scroll` op een voorouder: dan loopt het blok met
   díe scrollcontainer mee. Knip met `overflow: clip`;
 - niet op de hero en niet op de footer;
-- niet in een gepinde sectie. Pint die alleen op desktop, zet het daar uit:
+- in een gepinde sectie alleen opkomen, niet weggaan (anders vervaagt hij tijdens
+  het pinnen). Een sectie komt eerst gewoon van onderen binnen en pint pas als hij
+  bovenaan staat:
 
 ```css
 @media (min-width: 1024px) {
   .mijn-pin [data-scrollfocus] {
-    animation: none !important;
-    opacity: 1 !important;
-    translate: none !important;
+    animation-name: sf-in, none !important;
+  }
+  .sf-js .mijn-pin [data-scrollfocus] {
+    opacity: var(--sf-in, 1) !important;
+    translate: 0 calc((1 - var(--sf-in, 1)) * var(--sf-in-afstand)) !important;
   }
 }
 ```
