@@ -1,5 +1,6 @@
 export { default as SnapScroll } from "./SnapScroll";
 export { default as Reveal } from "./Reveal";
+export { default as ScrollFocus } from "./ScrollFocus";
 export { IntroReveal, useIntroPhase } from "./IntroReveal";
 export {
   default as Stage,

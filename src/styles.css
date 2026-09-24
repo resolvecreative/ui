@@ -94,3 +94,114 @@
     display: none;
   }
 }
+
+/* ---------- Scrollfocus: continu opkomen en weggaan tijdens scrollen ----------
+   Studio-standaard voor elke site, telefoon én desktop: elk blok met data-scrollfocus
+   komt op terwijl het door de onderste --sf-in-zone van het scherm gaat
+   (van onzichtbaar en --sf-in-afstand lager naar vol) en gaat weer weg in
+   de bovenste --sf-uit-zone (uitfaden en --sf-uit-afstand verder omhoog).
+   Continu en in beide richtingen: terugscrollen speelt het omgekeerd.
+
+   Het verloop heeft een zachte in- en uitloop (--sf-curve), zodat een blok
+   niet hard begint of stopt; de zones zijn ruim, zodat ook een snelle
+   veeg het opkomen niet in een paar frames afraffelt.
+
+   Zones in vh en niet in procenten van het blok, zodat een label van 12px
+   net zo rustig opkomt als een kaart van 400px.
+
+   Onderin ligt eerst een dode strook (--sf-in-start) waarin een blok nog
+   helemaal onzichtbaar is. Op een iPhone tekent Safari de pagina ook
+   achter de doorzichtige onderbalk; zonder die strook schemert daar het
+   begin van de volgende sectie door, bv. onder een hero van 100svh.
+
+   Twee animaties op één blok: "uit" heeft géén backwards-fill, dus vóór
+   zijn bereik doet hij niets en blijft "in" de baas. Daarbinnen wint hij,
+   want hij staat later in de lijst.
+
+   Regels voor wie het toepast:
+   - niet op een element dat zelf al opacity, translate of een animatie
+     heeft — zet het dan op een wrapper eromheen;
+   - niet op wat in de laatste ~20vh van de pagina staat (de footer): dat
+     komt nooit ver genoeg omhoog om vol zichtbaar te worden;
+   - geen overflow: hidden/auto/scroll op een voorouder: dat is een
+     scrollcontainer en dan loopt het blok met díe mee in plaats van met de
+     pagina. Knippen kan met overflow: clip;
+   - niet binnen een gepinde (sticky) sectie. Pint een sectie alleen op
+     desktop, zet het er dan per breakpoint uit met animation: none,
+     opacity: 1 en translate: none, alle drie !important (voorbeeld in de README).
+
+   Plafondregel: helemaal bovenaan is alleen de hero zichtbaar. De eerste
+   sectie na de hero krijgt een wrapper met data-scrollfocus-plafond; die
+   kijkt naar de scrollpositie van de pagina en niet naar de plek op het
+   scherm, dus bij scroll 0 is hij 0 — ook als Safari hem achter de
+   doorzichtige balk in beeld tekent. Over --sf-plafond-zone komt hij op.
+   Zijn dekking vermenigvuldigt met die van de blokken erin.
+
+   Staartregel: blokken onderaan de pagina halen de hele in-zone nooit,
+   want het scrollen houdt eerder op. De motor zet voor die blokken
+   --sf-van en --sf-tot (px), zodat ze precies vol staan op de bodem. Dus
+   <ScrollFocus /> hoort op elke pagina met Scrollfocus, ook in browsers
+   die de rest zelf doen.
+
+   Browsers zonder animation-timeline krijgen de JS-motor in
+   src/ScrollFocus.tsx (<ScrollFocus /> op elke pagina); die zet html.sf-js en per blok --sf-in en
+   --sf-uit (0 tot 1). */
+:root {
+  --sf-in-start: 12vh;
+  --sf-in-zone: 40vh;
+  --sf-uit-zone: 25vh;
+  --sf-in-afstand: 32px;
+  --sf-uit-afstand: 16px;
+  --sf-plafond-zone: 15vh;
+  /* sinus in-uit: zacht begin én eind, gelijkmatig midden; staat ook in ScrollFocus.tsx (CURVE) */
+  --sf-curve: cubic-bezier(0.37, 0, 0.63, 1);
+}
+
+@keyframes sf-in {
+  from { opacity: 0; translate: 0 var(--sf-in-afstand); }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes sf-plafond {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sf-uit {
+  from { opacity: 1; translate: 0 0; }
+  to { opacity: 0; translate: 0 calc(-1 * var(--sf-uit-afstand)); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    html:not(.sf-js) [data-scrollfocus] {
+      animation:
+        sf-in var(--sf-curve) both,
+        sf-uit var(--sf-curve) forwards;
+      animation-timeline: view(), view();
+      animation-range:
+        cover var(--sf-van, var(--sf-in-start))
+          cover var(--sf-tot, calc(var(--sf-in-start) + var(--sf-in-zone))),
+        cover calc(100% - var(--sf-uit-zone)) cover 100%;
+    }
+
+    html:not(.sf-js) [data-scrollfocus-plafond] {
+      animation: sf-plafond var(--sf-curve) both;
+      animation-timeline: scroll(root);
+      animation-range: 0px var(--sf-plafond-zone);
+    }
+  }
+
+  .sf-js [data-scrollfocus] {
+    opacity: calc(var(--sf-in, 1) * var(--sf-uit, 1));
+    translate: 0
+      calc(
+        (1 - var(--sf-in, 1)) * var(--sf-in-afstand) -
+          (1 - var(--sf-uit, 1)) * var(--sf-uit-afstand)
+      );
+  }
+
+  .sf-js [data-scrollfocus-plafond] {
+    opacity: var(--sf-plafond, 1);
+  }
+}

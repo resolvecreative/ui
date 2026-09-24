@@ -14,7 +14,7 @@ Vastzetten op een tag, nooit op een branch — anders verandert een site zonder
 dat je hem hebt aangeraakt.
 
 ```bash
-pnpm add "@resolvecreative/ui@github:resolvecreative/ui#v1.1.2"
+pnpm add "@resolvecreative/ui@github:resolvecreative/ui#v1.2.0"
 ```
 
 Het pakket wordt als TypeScript geleverd, dus Next moet hem meenemen in de
@@ -94,6 +94,53 @@ import { Reveal } from "@resolvecreative/ui";
 </Reveal>;
 ```
 
+### ScrollFocus — standaard op elke site
+
+Blokken komen continu op als ze onderin het scherm binnenkomen en gaan weer weg
+als ze er bovenin uit gaan, in beide richtingen. Telefoon én desktop. Het
+scrollwerk doet CSS zelf (`animation-timeline: view()`); browsers zonder
+ondersteuning krijgen een JS-motor met dezelfde waarden.
+
+Zet `<ScrollFocus />` op **elke pagina** (niet in de layout: bij client-navigatie
+moet hij opnieuw meten) en markeer de blokken:
+
+```tsx
+import { ScrollFocus } from "@resolvecreative/ui";
+
+<section>
+  <p data-scrollfocus>Label</p>
+  <div data-scrollfocus>Kaart</div>
+</section>
+<ScrollFocus />;
+```
+
+Per blok, niet per sectie: kop, tekst en kaarten elk apart.
+
+- **Plafondregel** — de eerste sectie na de hero krijgt binnen zich een wrapper
+  met `data-scrollfocus-plafond`. Bij scroll 0 is die 0, zodat er op een iPhone
+  niets onder de hero doorschemert achter de doorzichtige Safari-balk.
+- **Staartregel** — gaat vanzelf: blokken onderaan de pagina krijgen een kortere
+  zone en staan vol net vóór de bodem.
+
+Toepassingsregels:
+
+- niet op een element dat zelf opacity, translate of een animatie heeft — zet het
+  op een wrapper eromheen;
+- geen `overflow: hidden/auto/scroll` op een voorouder: dan loopt het blok met
+  díe scrollcontainer mee. Knip met `overflow: clip`;
+- niet op de hero en niet op de footer;
+- niet in een gepinde sectie. Pint die alleen op desktop, zet het daar uit:
+
+```css
+@media (min-width: 1024px) {
+  .mijn-pin [data-scrollfocus] {
+    animation: none !important;
+    opacity: 1 !important;
+    translate: none !important;
+  }
+}
+```
+
 ### IntroReveal
 
 Preloader met watermerk, dan een boog die opengaat. De sectie eronder leest de
@@ -133,6 +180,12 @@ afwijkt:
 | `--bbb-intro-fg` | kleur van het watermerk | `--hero-fg`, dan `currentColor` |
 | `--bbb-intro-lijn` | randje om de preloader | `--line`, dan zwart 12% |
 | `--bbb-intro-font` | font van het watermerk | het font van de pagina |
+| `--sf-in-start` | dode strook onderin, blok nog onzichtbaar | `12vh` |
+| `--sf-in-zone` | hoogte waarover een blok opkomt | `40vh` |
+| `--sf-uit-zone` | hoogte bovenin waarover hij weggaat | `25vh` |
+| `--sf-in-afstand` / `--sf-uit-afstand` | verschuiving bij opkomen / weggaan | `32px` / `16px` |
+| `--sf-plafond-zone` | scroll waarover de plafond-wrapper opkomt | `15vh` |
+| `--sf-curve` | verloop (houd gelijk aan `CURVE` in ScrollFocus.tsx) | sinus in-uit |
 
 De timing van Transitie 101 (`DUUR_SECTIE`, 1090ms) staat in `src/easing.ts` en
 geldt voor alle sites tegelijk. Wijk daar per site alleen met een reden van af,
