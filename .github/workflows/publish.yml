@@ -34,7 +34,7 @@ jobs:
       - run: |
           uitvoer=$(npm publish 2>&1) && { echo "$uitvoer"; exit 0; }
           echo "$uitvoer"
-          echo "$uitvoer" | grep -q 'EPUBLISHCONFLICT\|already exists' || exit 1
+          echo "$uitvoer" | grep -q 'EPUBLISHCONFLICT\|already exists\|cannot publish over' || exit 1
           echo 'Deze versie stond er al; niets te doen.'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
